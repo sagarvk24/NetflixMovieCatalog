@@ -6,13 +6,11 @@ on:
       - main
 
 env:
-  # for login to ECR
   AWS_REGION: us-east-1
-  ECR_REGISTRY: 700935310038.dkr.ecr.us-east-1.amazonaws.com
-  ECR_USERNAME: AWS
+  AWS_ECR_REGISTRY: 700935310038.dkr.ecr.us-east-1.amazonaws.com
+  AWS_ECR_USERNAME: AWS
 
-  # IMAGE_NAME: netflix-movie-catalog
-  ECR_REPOSITORY: ai-tsadok/netflix-catalog
+  AWS_ECR_REPOSITORY: ai-tsadok/netflix-catalog
   IMAGE_TAG: latest
 
 jobs:
@@ -31,39 +29,16 @@ jobs:
 
       - name: Docker Login
         run: |
-          echo ${{ secrets.AWS_ECR_PASSWORD }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+          echo ${{ secrets.AWS_ECR_PASSWORD }} | docker login --username ${{ env.AWS_ECR_USERNAME }}  --password-stdin ${{ env.AWS_ECR_REGISTRY }}
 
       - name: Build Image
         env:
-          IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          IMAGE_NAME: ${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         run: |
           docker build -t ${{ env.IMAGE_NAME }} .
 
       - name: Push image to Amazon ECR
         env:
-          IMAGE_NAME: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          IMAGE_NAME: ${{ env.AWS_ECR_REGISTRY }}/${{ env.AWS_ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         run: |
           docker push ${{ env.IMAGE_NAME }}
-
-      
-      # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      # - name: Build Docker Image
-      #   run: |
-      #     docker build -t ${{ env.IMAGE_NAME }} .
-
-
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
-
-      # - name: Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v1
-
-        # aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 700935310038.dkr.ecr.us-east-1.amazonaws.com
-
-
